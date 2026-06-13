@@ -1,0 +1,12 @@
+{
+    "CustomBucketRole": {
+        "role_title": "Custom - External - Bucket",
+        "role_description": "Project level Cloud Storage permissions for external (consulting) users",
+        "role_permissions": ["storage.buckets.list"]
+    },
+    "CustomBigQueryRole": {
+        "role_title": "Custom - External - BigQuery",
+        "role_description": "Project level Big Query permissions for external (consulting) users",
+        "role_permissions": ["bigquery.jobs.create"]
+    }
+}

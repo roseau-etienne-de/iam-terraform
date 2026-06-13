@@ -1,0 +1,19 @@
+{
+    "alice.ar_admin": {
+        "role": "roles/artifactregistry.admin",
+        "member": "user:user:alice@adress.com"
+    },
+    "alice.cb_build_editor": {
+        "role": "roles/cloudbuild.builds.editor",
+        "member": "user:user:alice@adress.com"
+    },
+    "alice.cb_build_conn_viewer": {
+        "role": "roles/cloudbuild.connectionViewer",
+        "member": "user:user:alice@adress.com"
+    },
+    
+    "arnaud.secret_admin": {
+        "role": "roles/secretmanager.admin",
+        "member": "user:arnaud@adress.com"
+    }
+}
