@@ -35,7 +35,7 @@ This project centralises and automates **Identity and Access Management (IAM)** 
 | **Least-Privilege External Access** | External users can only access their own GCS buckets and BigQuery datasets |
 | **Config-driven design** | All user lists and permissions live in flat files (`.txt`, `.json`) — no Terraform edits needed for day-to-day changes |
 | **Keyless CI/CD** | Service account authenticates via **Workload Identity Federation** — no long-lived credentials |
-| **GitOps workflow** | `terraform plan` on PR, `terraform apply` on merge to master |
+| **GitOps workflow** | `terraform plan` on PR, `terraform apply` on merge to main |
 | **Remote state** | Terraform state stored in a GCS backend |
 
 ---
@@ -162,8 +162,12 @@ Service Account: sa-iam-terraform-cicd@project.iam.gserviceaccount.com
 Auth method:     Workload Identity Federation (keyless)
 ```
 
-Required SA roles:
-- BigQuery Admin · Cloud Quotas Admin · Project IAM Admin · Role Viewer · Storage Admin
+Required SA roles (IAM specified):
+- BigQuery Admin
+- Cloud Quotas Admin
+- Project IAM Admin
+- Role Viewer
+- Storage Admin
 
 ### GitOps Workflow
 
@@ -173,7 +177,7 @@ Developer                        GitHub                              GCP
    ├─ git push (feature branch) ───►│                                 │
    │                                ├─ terraform plan ───────────────►│
    │                                │◄─ plan output (displayed in PR) ┤
-   ├─ merge to master ─────────────►│                                 │
+   ├─ merge to main ───────────────►│                                 │
    │                                ├─ terraform apply ──────────────►│
    │                                │◄─ IAM applied ──────────────────┤
 ```
@@ -181,9 +185,10 @@ Developer                        GitHub                              GCP
 | Event | Action |
 |-------|--------|
 | Pull Request opened / updated | `terraform plan` — output posted as PR comment |
-| Merge to `master` | `terraform apply` — IAM changes deployed to GCP |
+| Merge to `main` | `terraform apply` — IAM changes deployed to GCP |
 
-> Push to `master` is branch-protected. All changes go through a reviewed PR.
+> [!NOTE]
+> Push to `main` is branch-protected. All changes go through a reviewed PR.
 
 ---
 
