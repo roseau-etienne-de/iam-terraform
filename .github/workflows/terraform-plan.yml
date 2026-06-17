@@ -1,0 +1,51 @@
+name: Terraform Plan
+
+on:
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+  id-token: write      # Needed for OIDC authentication with cloud providers (WIF)
+  pull-requests: write # Needed to comment on PRs
+
+jobs:
+  terraform-plan:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Authenticate to GCP
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ vars.WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+      
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Plan
+      run: terraform plan -input=false -no-color > plan.txt 2>&1 # 2>&1 to capture errors in plan.txt
+      continue-on-error: true # Continue to comments error logs in PR
+
+    - name: Comment Plan on PR
+      uses: actions/github-script@v6
+      with:
+        script: | # Import fs module to read plan output
+          const fs = require('fs'); 
+          const plan = fs.readFileSync('plan.txt', 'utf8');
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '## Terraform Plan\n```\n' + plan + '\n```\n1️⃣ If plan is ok after checking, **you can merge** to trigger \`terraform apply\`.\n2️⃣ Click on the **job** link, to check the deployment.'
+          });

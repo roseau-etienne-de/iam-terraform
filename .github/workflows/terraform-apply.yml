@@ -1,0 +1,60 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  terraform-apply:
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        shell: bash 
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Comment PR with Apply run link
+      uses: actions/github-script@v8
+      with:
+        script: |
+          const commit = process.env.GITHUB_SHA;
+          const pulls = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: commit,
+          });
+
+          if (pulls.data && pulls.data.length) {
+            const prNumber = pulls.data[0].number;
+            const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            const body = `\`terraform apply\` is running, check if [job](${runUrl}) is running fine.`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body,
+            });
+          }
+    
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v3
+      with:
+        workload_identity_provider: ${{ vars.WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+    
+    - name: Terraform Init
+      run: terraform init
+    
+    - name: Terraform Apply
+      run: terraform apply -auto-approve -input=false
